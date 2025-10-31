@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Chapter } from '../types';
-import { ArrowLeft, Star, MessageCircle, Share2, BookmarkPlus } from 'lucide-react';
+import { ArrowLeft, Star, MessageCircle, Share2, MoreHorizontal, Lock } from 'lucide-react';
 import { ImageWithFallback } from './figma/ImageWithFallback';
 
 interface ChapterReaderProps {
@@ -8,12 +8,16 @@ interface ChapterReaderProps {
   bookTitle: string;
   onBack: () => void;
   onToggleVote?: (chapterId: string, willLike: boolean) => void;
+  chapters?: Chapter[];
+  onSelectChapter?: (chapterId: string) => void;
+  bookCover?: string;
 }
 
-export function ChapterReader({ chapter, bookTitle, onBack, onToggleVote }: ChapterReaderProps) {
+export function ChapterReader({ chapter, bookTitle, onBack, onToggleVote, chapters = [], onSelectChapter, bookCover }: ChapterReaderProps) {
   const [isLiked, setIsLiked] = useState(chapter.isLiked);
   const [likes, setLikes] = useState(chapter.likes);
   const [showComments, setShowComments] = useState(false);
+  const [showChapterMenu, setShowChapterMenu] = useState(false);
 
   const handleLike = () => {
     const willLike = !isLiked;
@@ -34,8 +38,8 @@ export function ChapterReader({ chapter, bookTitle, onBack, onToggleVote }: Chap
             <p className="text-sm text-gray-600 truncate">{bookTitle}</p>
             <p className="text-xs text-gray-400">Chapitre {chapter.number}</p>
           </div>
-          <button className="text-gray-700">
-            <BookmarkPlus className="w-6 h-6" />
+          <button className="text-gray-700" onClick={() => setShowChapterMenu(true)} aria-label="Ouvrir le menu des chapitres">
+            <MoreHorizontal className="w-6 h-6" />
           </button>
         </div>
       </div>
@@ -130,6 +134,54 @@ export function ChapterReader({ chapter, bookTitle, onBack, onToggleVote }: Chap
               {chapter.comments.length === 0 && (
                 <p className="text-center text-gray-400 mt-8">Aucun commentaire pour le moment</p>
               )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Left Drawer: Chapters Menu */}
+      {showChapterMenu && (
+        <div className="fixed inset-0 z-30" aria-modal="true" role="dialog">
+          <div className="absolute inset-0 bg-black/50" onClick={() => setShowChapterMenu(false)} />
+          <div className="absolute left-0 top-0 bottom-0 w-80 max-w-[85%] bg-white shadow-2xl overflow-y-auto">
+            <div className="px-4 py-4 border-b flex items-center gap-3 shadow-sm">
+              {bookCover && (
+                <img src={bookCover} alt={bookTitle} className="w-8 h-12 rounded object-cover flex-shrink-0" />
+              )}
+              <div className="min-w-0 text-left flex items-center">
+                <div>
+                  <h3 className="truncate text-xl font-medium text-gray-600">{bookTitle}</h3>
+                  <p className="text-sm text-gray-600 mt-0.5">Tous les chapitres</p>
+                </div>
+              </div>
+            </div>
+            <div className="p-3 space-y-2">
+              {chapters.map((c) => (
+                <button
+                  key={c.id}
+                  onClick={() => {
+                    onSelectChapter?.(c.id);
+                    setShowChapterMenu(false);
+                  }}
+                  className={`w-full text-left px-4 py-3 rounded-xl flex items-center gap-4 hover:bg-gray-50 focus:bg-gray-50 transition-colors ${
+                    c.id === chapter.id ? 'bg-gray-100 ring-1 ring-gray-200' : ''
+                  }`}
+                >
+                  {bookCover && (
+                    <div className="relative flex-shrink-0">
+                      <img src={bookCover} alt={bookTitle} className="w-8 h-10 rounded-md object-cover" />
+                      {c.isPaid && (
+                        <div className="absolute -top-1 -right-1 bg-yellow-500 text-white rounded-full w-4 h-4 flex items-center justify-center">
+                          <Lock className="w-2.5 h-2.5" />
+                        </div>
+                      )}
+                    </div>
+                  )}
+                  <div className="min-w-0 flex-1 text-left flex items-center">
+                    <p className="truncate text-lg font-medium text-gray-600 leading-snug">{c.title}</p>
+                  </div>
+                </button>
+              ))}
             </div>
           </div>
         </div>

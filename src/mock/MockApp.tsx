@@ -83,8 +83,14 @@ export default function MockApp() {
           <ChapterReader
             chapter={chapter}
             bookTitle={selectedBook.title}
+            bookCover={selectedBook.cover}
             onBack={handleBack}
             onToggleVote={handleToggleVote}
+            chapters={selectedBook.chapters}
+            onSelectChapter={(id) => {
+              setSelectedChapterId(id);
+              setCurrentScreen('chapter-reader');
+            }}
           />
         );
       }
