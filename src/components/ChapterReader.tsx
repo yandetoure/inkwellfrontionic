@@ -1,22 +1,25 @@
 import { useState } from 'react';
 import { Chapter } from '../types';
-import { ArrowLeft, Heart, MessageCircle, Share2, BookmarkPlus } from 'lucide-react';
+import { ArrowLeft, Star, MessageCircle, Share2, BookmarkPlus } from 'lucide-react';
 import { ImageWithFallback } from './figma/ImageWithFallback';
 
 interface ChapterReaderProps {
   chapter: Chapter;
   bookTitle: string;
   onBack: () => void;
+  onToggleVote?: (chapterId: string, willLike: boolean) => void;
 }
 
-export function ChapterReader({ chapter, bookTitle, onBack }: ChapterReaderProps) {
+export function ChapterReader({ chapter, bookTitle, onBack, onToggleVote }: ChapterReaderProps) {
   const [isLiked, setIsLiked] = useState(chapter.isLiked);
   const [likes, setLikes] = useState(chapter.likes);
   const [showComments, setShowComments] = useState(false);
 
   const handleLike = () => {
-    setIsLiked(!isLiked);
-    setLikes(isLiked ? likes - 1 : likes + 1);
+    const willLike = !isLiked;
+    setIsLiked(willLike);
+    setLikes(willLike ? likes + 1 : likes - 1);
+    onToggleVote?.(chapter.id, willLike);
   };
 
   return (
@@ -53,7 +56,9 @@ export function ChapterReader({ chapter, bookTitle, onBack }: ChapterReaderProps
         <h1 className="mb-2">
           Chapitre {chapter.number}: {chapter.title}
         </h1>
-        <p className="text-gray-400 text-sm mb-6">{chapter.wordCount} mots</p>
+        <p className="text-gray-400 text-sm mb-6">
+          {chapter.wordCount} mots • {(chapter.views ?? 0).toLocaleString()} vues
+        </p>
 
         <div className="prose max-w-none">
           <p className="text-gray-700 leading-relaxed whitespace-pre-wrap">{chapter.content}</p>
@@ -81,20 +86,20 @@ export function ChapterReader({ chapter, bookTitle, onBack }: ChapterReaderProps
       <div className="fixed bottom-16 left-0 right-0 bg-white border-t px-6 py-4">
         <div className="flex items-center justify-around">
           <button
-            onClick={handleLike}
-            className={`flex flex-col items-center gap-1 ${
-              isLiked ? 'text-red-500' : 'text-gray-600'
-            }`}
-          >
-            <Heart className={`w-6 h-6 ${isLiked ? 'fill-current' : ''}`} />
-            <span className="text-xs">{likes}</span>
-          </button>
-          <button
             onClick={() => setShowComments(!showComments)}
             className="flex flex-col items-center gap-1 text-gray-600"
           >
             <MessageCircle className="w-6 h-6" />
             <span className="text-xs">{chapter.comments.length}</span>
+          </button>
+          <button
+            onClick={handleLike}
+            className={`flex flex-col items-center gap-1 ${
+              isLiked ? 'text-yellow-500' : 'text-gray-600'
+            }`}
+          >
+            <Star className={`w-6 h-6 ${isLiked ? 'fill-current' : ''}`} />
+            <span className="text-xs">{likes}</span>
           </button>
           <button className="flex flex-col items-center gap-1 text-gray-600">
             <Share2 className="w-6 h-6" />

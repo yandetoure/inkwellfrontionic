@@ -1,5 +1,5 @@
 import { Book } from '../types';
-import { Heart } from 'lucide-react';
+import { Star } from 'lucide-react';
 import { ImageWithFallback } from './figma/ImageWithFallback';
 
 interface BookCardProps {
@@ -26,8 +26,8 @@ export function BookCard({ book, onClick }: BookCardProps) {
         <h3 className="truncate">{book.title}</h3>
         <p className="text-gray-500 text-sm">{book.author}</p>
         <div className="flex items-center gap-1 mt-1 text-gray-400 text-sm">
-          <Heart className="w-4 h-4" />
-          <span>{book.totalLikes}</span>
+          <Star className="w-4 h-4 text-yellow-500" />
+          <span>{book.chapters.reduce((sum, c) => sum + (c.likes || 0), 0)}</span>
         </div>
       </div>
     </div>

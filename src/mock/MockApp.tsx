@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Home, Library, BookMarked, User, Home as HomeIcon } from 'lucide-react';
 import { Home as HomePage } from '../components/Home';
 import { Library as LibraryPage } from '../components/Library';
@@ -8,6 +8,7 @@ import { BookDetail } from '../components/BookDetail';
 import { ChapterReader } from '../components/ChapterReader';
 import { CoinPurchase } from '../components/CoinPurchase';
 import { mockBooks, mockUser } from '../data/mockData';
+import { fetchBooks, fetchMe } from '../services/api';
 import { Book, User as UserType } from '../types';
 
 type Screen = 'home' | 'library' | 'reading-list' | 'profile' | 'book-detail' | 'chapter-reader';
@@ -18,6 +19,12 @@ export default function MockApp() {
   const [selectedChapterId, setSelectedChapterId] = useState<string | null>(null);
   const [showCoinPurchase, setShowCoinPurchase] = useState(false);
   const [user, setUser] = useState<UserType>(mockUser);
+  const [books, setBooks] = useState<Book[]>(mockBooks);
+
+  useEffect(() => {
+    fetchMe().then(setUser).catch(() => {});
+    fetchBooks().then(setBooks).catch(() => {});
+  }, []);
 
   const handleBookSelect = (book: Book) => {
     setSelectedBook(book);
@@ -46,6 +53,20 @@ export default function MockApp() {
     alert(`Achat réussi! Vous avez reçu ${coins} pièces pour ${price} F CFA`);
   };
 
+  const handleToggleVote = (chapterId: string, willLike: boolean) => {
+    if (!selectedBook) return;
+    // Update selectedBook
+    const updatedChapters = selectedBook.chapters.map((c) =>
+      c.id === chapterId
+        ? { ...c, isLiked: willLike, likes: willLike ? c.likes + 1 : c.likes - 1 }
+        : c
+    );
+    const updatedBook: Book = { ...selectedBook, chapters: updatedChapters };
+    setSelectedBook(updatedBook);
+    // Update books collection
+    setBooks((prev) => prev.map((b) => (b.id === updatedBook.id ? updatedBook : b)));
+  };
+
   const handleBack = () => {
     if (currentScreen === 'chapter-reader') {
       setCurrentScreen('book-detail');
@@ -59,7 +80,12 @@ export default function MockApp() {
       const chapter = selectedBook.chapters.find((c) => c.id === selectedChapterId);
       if (chapter) {
         return (
-          <ChapterReader chapter={chapter} bookTitle={selectedBook.title} onBack={handleBack} />
+          <ChapterReader
+            chapter={chapter}
+            bookTitle={selectedBook.title}
+            onBack={handleBack}
+            onToggleVote={handleToggleVote}
+          />
         );
       }
     }
@@ -78,15 +104,15 @@ export default function MockApp() {
 
     switch (currentScreen) {
       case 'home':
-        return <HomePage books={mockBooks} onBookSelect={handleBookSelect} />;
+        return <HomePage books={books} onBookSelect={handleBookSelect} />;
       case 'library':
-        return <LibraryPage books={mockBooks} onBookSelect={handleBookSelect} />;
+        return <LibraryPage books={books} onBookSelect={handleBookSelect} />;
       case 'reading-list':
-        return <ReadingList books={mockBooks} onBookSelect={handleBookSelect} />;
+        return <ReadingList books={books} onBookSelect={handleBookSelect} />;
       case 'profile':
         return <Profile user={user} onBuyCoins={() => setShowCoinPurchase(true)} />;
       default:
-        return <HomePage books={mockBooks} onBookSelect={handleBookSelect} />;
+        return <HomePage books={books} onBookSelect={handleBookSelect} />;
     }
   };
 

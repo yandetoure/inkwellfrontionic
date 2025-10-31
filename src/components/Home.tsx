@@ -278,7 +278,7 @@ function HorizontalBookScroll({ books, onBookSelect, dark = false }: HorizontalB
               <div className="flex items-center gap-1 mt-1">
                 <Star className={`w-3 h-3 ${dark ? 'text-yellow-400' : 'text-yellow-500'} fill-current`} />
                 <span className={`text-xs ${dark ? 'text-gray-300' : 'text-gray-600'}`}>
-                  {book.rating}
+                  {book.chapters.reduce((sum, c) => sum + (c.likes || 0), 0)}
                 </span>
               </div>
             </div>

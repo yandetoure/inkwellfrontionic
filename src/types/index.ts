@@ -4,6 +4,7 @@ export interface Chapter {
   title: string;
   content: string;
   wordCount: number;
+  views?: number;
   image?: string;
   likes: number;
   comments: Comment[];
